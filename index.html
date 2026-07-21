@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator & Generator KML Presisi - Riyan Pratama K</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; line-height: 1.6; background-color: #f0f4f8; color: #333; }
+        .container { max-width: 850px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin: 0 auto; }
+        h2 { color: #2c3e50; border-bottom: 3px solid #e67e22; padding-bottom: 12px; margin-top: 0; }
+        
+        /* Gaya Menu Navigasi Tab */
+        .tabs-nav { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid #cbd5e1; }
+        .tab-btn { padding: 12px 20px; border: none; background: #e2e8f0; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: bold; color: #475569; transition: all 0.2s; }
+        .tab-btn:hover { background: #cbd5e1; }
+        .tab-btn.active { background: #e67e22; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .mode-selection { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .radio-group { display: flex; gap: 20px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 5px; }
+        .mode-label { font-weight: 600; color: #475569; display: flex; align-items: center; cursor: pointer; }
+        .mode-label input { margin-right: 8px; transform: scale(1.2); cursor: pointer; }
+        
+        .checkbox-label { font-weight: 600; color: #0284c7; display: flex; align-items: center; cursor: pointer; font-size: 14px; }
+        .checkbox-label input { margin-right: 8px; transform: scale(1.2); cursor: pointer; }
+
+        textarea { width: 100%; height: 220px; margin: 15px 0; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: monospace; font-size: 13px; background-color: #f8fafc; }
+        
+        /* Layout Tombol Aksi */
+        .button-group { display: flex; gap: 10px; width: 100%; margin-top: 15px; flex-wrap: wrap; }
+        .btn-hitung { background-color: #e67e22; color: white; padding: 14px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; transition: background 0.2s; flex: 2; text-align: center; }
+        .btn-hitung:hover { background-color: #d35400; }
+        
+        .btn-hitung-simple { background-color: #0284c7; color: white; padding: 14px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; transition: background 0.2s; flex: 2; text-align: center; }
+        .btn-hitung-simple:hover { background-color: #0369a1; }
+
+        .btn-clear { background-color: #94a3b8; color: white; padding: 14px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; transition: background 0.2s; flex: 1; text-align: center; }
+        .btn-clear:hover { background-color: #64748b; }
+
+        /* Hasil Generator KML */
+        .btn-copy { background-color: #10b981; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; margin-bottom: 10px; transition: background 0.2s; }
+        .btn-copy:hover { background-color: #059669; }
+
+        .result-box { margin-top: 30px; padding: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; display: none; }
+        
+        /* Box Ringkasan Oranye */
+        .summary-card { background: #fff3e0; border-left: 6px solid #e67e22; padding: 20px; border-radius: 4px; margin-bottom: 25px; }
+        .summary-title { margin: 0 0 15px 0; color: #d35400; font-size: 16px; font-weight: bold; border-bottom: 2px solid #fed7aa; padding-bottom: 8px; text-transform: uppercase; }
+        .summary-item-row { font-size: 22px; font-weight: bold; color: #e67e22; margin: 12px 0; display: block; }
+        .summary-item-row .nama-kabel, .summary-item-row .nama-titik { color: #2c3e50; font-weight: bold; }
+        .summary-item-row .sub-km, .summary-item-row .sub-satuan, .summary-item-row .desc-text { font-size: 14px; font-weight: normal; color: #64748b; margin-left: 5px; }
+        .summary-item-row .desc-text { display: block; font-size: 13px; color: #0284c7; margin-top: 3px; font-family: sans-serif; font-weight: 600; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f1f5f9; color: #475569; font-weight: 600; }
+        tr:hover { background-color: #f8fafc; }
+        .error { color: #e11d48; font-weight: bold; background: #ffe4e6; padding: 10px; border-radius: 4px; border-left: 4px solid #e11d48; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Kalkulator KML Presisi By Riyan Pratama K</h2>
+    
+    <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('kalkulator')">Hitung Data KML</button>
+        <button class="tab-btn" onclick="switchTab('generator')">Buat KML dari Excel (TAB)</button>
+    </div>
+    
+    <div id="tab-kalkulator" class="tab-content active">
+        <p style="color: #64748b;">Gunakan pilihan di bawah untuk menghitung akumulasi panjang kabel serat optik atau jumlah titik penanda (Tiang/ODP).</p>
+        
+        <div class="mode-selection">
+            <div class="radio-group">
+                <label class="mode-label">
+                    <input type="radio" name="hitungMode" value="kabel" checked> Hitung Panjang Kabel (Line)
+                </label>
+                <label class="mode-label">
+                    <input type="radio" name="hitungMode" value="titik"> Hitung Jumlah Titik (Placemark)
+                </label>
+            </div>
+            <div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="modeRingkas" checked> Bersihkan Suffix Angka & Gabung Total Induk (Rekomendasi)
+                </label>
+            </div>
+        </div>
+
+        <textarea id="kmlInput" placeholder="Tempel (Paste) teks XML/KML di sini..."></textarea>
+        
+        <!-- Tombol Aksi Diperbarui dengan Fitur Hitung Murni -->
+        <div class="button-group">
+            <button class="btn-hitung" onclick="prosesKML()">Proses & Hitung Detail</button>
+            <button class="btn-hitung-simple" onclick="hitungTotalPlacemarkMurni()">Hitung Total Placemark (Bypass Name)</button>
+            <button class="btn-clear" onclick="clearDataKalkulator()">Clear Data</button>
+        </div>
+
+        <div id="result" class="result-box">
+            <div class="summary-card">
+                <div id="judulBoxRingkasan" class="summary-title">TOTAL PANJANG KESELURUHAN GABUNGAN:</div>
+                <div id="kontenMurniRingkasan"></div>
+            </div>
+            
+            <h3 id="subJudulTabel" style="color: #334155; margin-bottom: 10px; font-size: 16px;">Tabel Rincian:</h3>
+            <table id="tabelHasil">
+                <thead id="headTabel"></thead>
+                <tbody id="bodyTabel"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-generator" class="tab-content">
+        <p style="color: #64748b;">Tempel data dari Excel atau Notepad dengan format pemisah kolom menggunakan <b>TAB</b> (Urutan Kolom: <b>Judul [TAB] Keterangan [TAB] Lat [TAB] Long</b>).</p>
+        
+        <textarea id="excelInput" placeholder="Contoh input teks pemisah TAB:&#10;SRU021&#9;DMT Sarawandori&#9;-1.86221&#9;136.18054&#10;DHP005&#9;DMT Luhutuban&#9;-3.3466&#9;127.59493"></textarea>
+        
+        <div class="button-group">
+            <button class="btn-hitung" style="flex: 3;" onclick="generateKMLDariTeks()">Buat Script KML</button>
+            <button class="btn-clear" style="flex: 1;" onclick="clearDataGenerator()">Clear Data</button>
+        </div>
+
+        <div id="generatorResult" class="result-box">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: #334155; margin: 0 0 10px 0; font-size: 16px;">Output Script KML Berhasil Dibuat:</h3>
+                <button class="btn-copy" onclick="copyKMLOutput()">Salin Script KML</button>
+            </div>
+            <textarea id="kmlOutput" style="height: 350px; background-color: #1e293b; color: #f8fafc; font-family: monospace;" readonly></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fungsi untuk navigasi tab menu
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    if (tabName === 'kalkulator') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('tab-kalkulator').classList.add('active');
+    } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('tab-generator').classList.add('active');
+    }
+}
+
+// ================== LOGIKA GENERATOR SCRIPT KML ==================
+function generateKMLDariTeks() {
+    const rawText = document.getElementById('excelInput').value.trim();
+    const resultBox = document.getElementById('generatorResult');
+    const outputArea = document.getElementById('kmlOutput');
+    
+    if (!rawText) {
+        alert("Silakan masukkan data teks Excel (TAB) terlebih dahulu!");
+        return;
+    }
+    
+    const lines = rawText.split('\n');
+    let placemarksArray = [];
+    
+    lines.forEach((line, idx) => {
+        if (!line.trim()) return;
+        
+        const columns = line.split('\t');
+        
+        if (columns.length >= 4) {
+            const name = columns[0].trim();
+            const desc = columns[1].trim();
+            const lat = columns[2].trim().replace(',', '.');
+            const lon = columns[3].trim().replace(',', '.');
+            
+            if (!isNaN(lat) && !isNaN(lon) && lat !== "" && lon !== "") {
+                const placemarkScript = `			<Placemark>
+				<name>${name}</name>
+				<description>${desc}</description>
+				<LookAt>
+					<longitude>${lon}</longitude>
+					<latitude>${lat}</latitude>
+					<altitude>0</altitude>
+					<heading>0</heading>
+					<tilt>0</tilt>
+					<range>1000</range>
+				</LookAt>
+				<styleUrl>#m_ylw-pushpin</styleUrl>
+				<Point>
+					<gx:drawOrder>1</gx:drawOrder>
+					<coordinates>${lon},${lat},0</coordinates>
+				</Point>
+			</Placemark>`;
+                placemarksArray.push(placemarkScript);
+            }
+        }
+    });
+    
+    if (placemarksArray.length === 0) {
+        alert("Format data salah atau koordinat tidak valid! Pastikan pemisah antar kolom adalah TAB asli hasil copy-paste Excel.");
+        return;
+    }
+    
+    const templateKMLUtama = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>KmlFile_Generated</name>
+	<StyleMap id="m_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#s_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#s_ylw-pushpin_hl</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="s_ylw-pushpin">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Style id="s_ylw-pushpin_hl">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Folder>
+		<name>Generated Folder</name>
+		<open>1</open>
+		<Folder>
+			<name>Data Site</name>
+			<open>1</open>
+${placemarksArray.join('\n')}
+		</Folder>
+		<atom:link rel="app" href="https://www.google.com/earth/about/versions/#earth-pro" title="Google Earth Pro 7.3.7.1155"></atom:link>
+	</Folder>
+</Document>
+</kml>`;
+
+    outputArea.value = templateKMLUtama;
+    resultBox.style.display = "block";
+}
+
+function copyKMLOutput() {
+    const outputArea = document.getElementById('kmlOutput');
+    outputArea.select();
+    outputArea.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(outputArea.value);
+    alert("Script KML berhasil disalin ke clipboard! Silakan paste di notepad lalu simpan dengan ekstensi .kml");
+}
+
+function clearDataGenerator() {
+    document.getElementById('excelInput').value = "";
+    document.getElementById('kmlOutput').value = "";
+    document.getElementById('generatorResult').style.display = "none";
+}
+
+// ================== LOGIKA UTAMA KALKULATOR KML ==================
+function hitungJarakWGS84(lon1, lat1, lon2, lat2) {
+    const f = 1 / 298.257223563;
+    const a = 6378137.0;
+    const rlat1 = lat1 * Math.PI / 180;
+    const rlon1 = lon1 * Math.PI / 180;
+    const rlat2 = lat2 * Math.PI / 180;
+    const rlon2 = lon2 * Math.PI / 180;
+    const F = (rlat1 + rlat2) / 2;
+    const G = (rlat1 - rlat2) / 2;
+    const lam = (rlon1 - rlon2) / 2;
+    const sG = Math.sin(G); const cG = Math.cos(G);
+    const sF = Math.sin(F); const cF = Math.cos(F);
+    const sL = Math.sin(lam); const cL = Math.cos(lam);
+    const S = sG*sG*cL*cL + cF*cF*sL*sL;
+    const C = cG*cG*cL*cL + sF*sF*sL*sL;
+    if (S === 0 || C === 0) return 0;
+    const omega = Math.atan(Math.sqrt(S / C));
+    const R = Math.sqrt(S * C) / omega;
+    const D = 2 * omega * a;
+    const H1 = (3 * R - 1) / (2 * C);
+    const H2 = (3 * R + 1) / (2 * S);
+    return D * (1 + f * H1 * sF * sF * cG * cG - f * H2 * sG * sG * cF * cF);
+}
+
+function dapatkanNamaGrupPintar(namaAsli, deskripsiAsli, isRingkas) {
+    if (!isRingkas) return namaAsli + "|||" + deskripsiAsli;
+    let teksGabung = (namaAsli + " " + deskripsiAsli).toUpperCase();
+    
+    let coreSpec = "";
+    if (teksGabung.includes("24")) coreSpec = " 24";
+    else if (teksGabung.includes("12")) coreSpec = " 12";
+    else if (teksGabung.includes("48")) coreSpec = " 48";
+    else if (teksGabung.includes("96")) coreSpec = " 96";
+    else if (teksGabung.includes("8")) coreSpec = " 8";
+    else if (teksGabung.includes("4")) coreSpec = " 4";
+
+    let namaInduk = "JALUR GABUNGAN";
+    if (teksGabung.includes("ADSS")) namaInduk = "ADSS";
+    else if (teksGabung.includes("DS")) namaInduk = "DS";
+    else if (teksGabung.includes("TITIK") || teksGabung.includes("TIANG")) namaInduk = "TIANG";
+    else if (teksGabung.includes("ODP")) namaInduk = "ODP";
+    else {
+        namaInduk = namaAsli.replace(/\[\d+.*?\]/g, '').replace(/\(\d+\)/g, '').replace(/\s+\d+$/g, '').trim();
+    }
+    return namaInduk + coreSpec + "|||";
+}
+
+function clearDataKalkulator() {
+    document.getElementById('kmlInput').value = "";
+    document.getElementById('kontenMurniRingkasan').innerHTML = "";
+    document.getElementById('bodyTabel').innerHTML = "";
+    document.getElementById('headTabel').innerHTML = "";
+    document.getElementById('result').style.display = "none";
+}
+
+// FUNGSI BARU: Hitung Total Murni Placemark (Bypass Nama & Parameter)
+function hitungTotalPlacemarkMurni() {
+    const xmlText = document.getElementById('kmlInput').value;
+    const resultBox = document.getElementById('result');
+    const kontenMurniRingkasan = document.getElementById('kontenMurniRingkasan');
+    const judulBoxRingkasan = document.getElementById('judulBoxRingkasan');
+    const headTabel = document.getElementById('headTabel');
+    const bodyTabel = document.getElementById('bodyTabel');
+    const subJudulTabel = document.getElementById('subJudulTabel');
+    
+    if (!xmlText.trim()) { alert("Silakan tempel teks KML terlebih dahulu!"); return; }
+    
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+    const placemarks = xmlDoc.getElementsByTagName("Placemark");
+    
+    if (placemarks.length === 0) {
+        headTabel.innerHTML = "";
+        bodyTabel.innerHTML = "<tr><td class='error'>Error: Tidak ditemukan objek Placemark di dalam KML ini!</td></tr>";
+        resultBox.style.display = "block";
+        return;
+    }
+
+    // Tampilkan total hitungan murni
+    judulBoxRingkasan.innerText = "TOTAL JUMLAH ALL PLACEMARK (TANPA FILTER):";
+    kontenMurniRingkasan.innerHTML = `<span class="summary-item-row"><span class="nama-titik">Total Tag Placemark :</span> ${placemarks.length.toLocaleString('id-ID')} <span class="sub-satuan">Objek / Penanda</span></span>`;
+    
+    // Tampilkan tabel ringkas semua Placemark
+    subJudulTabel.innerText = "Daftar Semua Objek Placemark:";
+    headTabel.innerHTML = `<tr><th style="width: 80px;">No.</th><th>Nama Objek</th><th>Tipe Objek</th></tr>`;
+    bodyTabel.innerHTML = "";
+    
+    for (let i = 0; i < placemarks.length; i++) {
+        const placemark = placemarks[i];
+        const nama = placemark.getElementsByTagName("name")[0]?.textContent || "Tanpa Nama";
+        
+        let tipe = "Unspecified/Point";
+        if (placemark.getElementsByTagName("LineString").length > 0) tipe = "LineString (Jalur)";
+        else if (placemark.getElementsByTagName("Polygon").length > 0) tipe = "Polygon (Area)";
+        else if (placemark.getElementsByTagName("Point").length > 0) tipe = "Point (Titik)";
+
+        bodyTabel.innerHTML += `<tr><td>${i + 1}</td><td style="font-weight: 500; color: #1e293b;">${nama}</td><td style="color: #0284c7; font-weight: 600;">${tipe}</td></tr>`;
+    }
+    
+    resultBox.style.display = "block";
+}
+
+function prosesKML() {
+    const xmlText = document.getElementById('kmlInput').value;
+    const resultBox = document.getElementById('result');
+    const kontenMurniRingkasan = document.getElementById('kontenMurniRingkasan');
+    const judulBoxRingkasan = document.getElementById('judulBoxRingkasan');
+    const headTabel = document.getElementById('headTabel');
+    const bodyTabel = document.getElementById('bodyTabel');
+    const subJudulTabel = document.getElementById('subJudulTabel');
+    const isRingkas = document.getElementById('modeRingkas').checked;
+    
+    if (!xmlText.trim()) { alert("Silakan tempel teks KML terlebih dahulu!"); return; }
+    
+    const mode = document.querySelector('input[name="hitungMode"]:checked').value;
+    bodyTabel.innerHTML = ""; kontenMurniRingkasan.innerHTML = "";
+    subJudulTabel.innerText = "Tabel Rincian:";
+    
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+    const placemarks = xmlDoc.getElementsByTagName("Placemark");
+    
+    if (placemarks.length === 0) {
+        headTabel.innerHTML = "";
+        bodyTabel.innerHTML = "<tr><td class='error'>Error: Tidak ditemukan objek Placemark di dalam KML ini!</td></tr>";
+        resultBox.style.display = "block";
+        return;
+    }
+
+    if (mode === "kabel") {
+        judulBoxRingkasan.innerText = "TOTAL PANJANG KESELURUHAN GABUNGAN:";
+        headTabel.innerHTML = `<tr><th style="width: 80px;">No.</th><th>Nama Objek Jalur & Deskripsi asli</th><th style="text-align: right;">Panjang Jalur</th></tr>`;
+        let rekapPanjangNama = {}; let rincianTabelData = []; let adaJalur = false;
+
+        for (let i = 0; i < placemarks.length; i++) {
+            const placemark = placemarks[i];
+            const lineString = placemark.getElementsByTagName("LineString");
+            if (lineString.length > 0) {
+                const originalName = placemark.getElementsByTagName("name")[0]?.textContent || "Tanpa Nama";
+                let descObjek = placemark.getElementsByTagName("description")[0]?.textContent?.trim() || "";
+                if (!descObjek) descObjek = placemark.getElementsByTagName("Snippet")[0]?.textContent?.trim() || "";
+                
+                const coordinatesElement = placemark.getElementsByTagName("coordinates")[0];
+                if (coordinatesElement) {
+                    let coordText = coordinatesElement.textContent.trim();
+                    let points = coordText.split(/\s+/);
+                    let daftarKoordinat = [];
+                    for (let k = 0; k < points.length; k++) {
+                        if (points[k]) {
+                            let parts = points[k].split(',');
+                            if (parts.length >= 2) daftarKoordinat.push({lon: parseFloat(parts[0]), lat: parseFloat(parts[1])});
+                        }
+                    }
+                    let jarakJalurIni = 0;
+                    for (let j = 0; j < daftarKoordinat.length - 1; j++) {
+                        jarakJalurIni += hitungJarakWGS84(daftarKoordinat[j].lon, daftarKoordinat[j].lat, daftarKoordinat[j+1].lon, daftarKoordinat[j+1].lat);
+                    }
+                    if (jarakJalurIni > 0) {
+                        adaJalur = true;
+                        let keyPembeda = dapatkanNamaGrupPintar(originalName, descObjek, isRingkas);
+                        if (rekapPanjangNama[keyPembeda]) rekapPanjangNama[keyPembeda] += jarakJalurIni;
+                        else rekapPanjangNama[keyPembeda] = jarakJalurIni;
+                        rincianTabelData.push({ nama: originalName, deskripsi: descObjek, jarak: jarakJalurIni });
+                    }
+                }
+            }
+        }
+        if (adaJalur) {
+            rincianTabelData.forEach((data, index) => {
+                bodyTabel.innerHTML += `<tr><td>${index + 1}</td><td style="font-weight: 500; color: #1e293b;">${data.nama}${data.deskripsi ? '<br><span style="font-size:12px; color:#0284c7; font-weight:600;">Spec: '+data.deskripsi+'</span>' : ''}</td><td style="text-align: right; font-weight: bold; color: #e67e22;">${Math.round(data.jarak).toLocaleString('id-ID')} m <span style="font-weight:normal; font-size:12px; color:#64748b;">((${(data.jarak/1000).toFixed(3).replace('.',',')} km))</span></td></tr>`;
+            });
+            let HTMLHasilRekap = "";
+            for (const [key, totalMurni] of Object.entries(rekapPanjangNama)) {
+                let [namaKabel, descKabel] = key.split("|||");
+                HTMLHasilRekap += `<span class="summary-item-row"><span class="nama-kabel">${namaKabel} :</span> ${Math.round(totalMurni).toLocaleString('id-ID')} Meter <span class="sub-km">atau (${(totalMurni / 1000).toFixed(3).replace('.', ',')} KM)</span>${(!isRingkas && descKabel) ? `<span class="desc-text">Keterangan: ${descKabel}</span>` : ''}</span>`;
+            }
+            kontenMurniRingkasan.innerHTML = HTMLHasilRekap;
+        } else {
+            kontenMurniRingkasan.innerHTML = "<span class='summary-item-row'>0 Meter</span>";
+        }
+    } else {
+        judulBoxRingkasan.innerText = "TOTAL JUMLAH TITIK PLACEMARK GABUNGAN:";
+        headTabel.innerHTML = `<tr><th style="width: 80px;">No.</th><th>Nama Titik & Deskripsi</th><th style="text-align: right;">Koordinat (Lat, Lon)</th></tr>`;
+        let rekapJumlahTitik = {}; let rincianTabelTitik = []; let adaTitik = false;
+
+        for (let i = 0; i < placemarks.length; i++) {
+            const placemark = placemarks[i];
+            const pointElement = placemark.getElementsByTagName("Point");
+            if (pointElement.length > 0) {
+                adaTitik = true;
+                const originalName = placemark.getElementsByTagName("name")[0]?.textContent || "Tanpa Nama";
+                let descObjek = placemark.getElementsByTagName("description")[0]?.textContent?.trim() || "";
+                if (!descObjek) descObjek = placemark.getElementsByTagName("Snippet")[0]?.textContent?.trim() || "";
+                
+                const coordElement = placemark.getElementsByTagName("coordinates")[0];
+                let koordinatTeks = "-";
+                if (coordElement) {
+                    let parts = coordElement.textContent.trim().split(',');
+                    if (parts.length >= 2) koordinatTeks = `${parseFloat(parts[1]).toFixed(6)}, ${parseFloat(parts[0]).toFixed(6)}`;
+                }
+                let keyPembedaTitik = dapatkanNamaGrupPintar(originalName, descObjek, isRingkas);
+                if (rekapJumlahTitik[keyPembedaTitik]) rekapJumlahTitik[keyPembedaTitik] += 1;
+                else rekapJumlahTitik[keyPembedaTitik] = 1;
+                rincianTabelTitik.push({ nama: originalName, deskripsi: descObjek, koordinat: koordinatTeks });
+            }
+        }
+        if (adaTitik) {
+            rincianTabelTitik.forEach((data, index) => {
+                bodyTabel.innerHTML += `<tr><td>${index + 1}</td><td style="font-weight: 500; color: #1e293b;">${data.nama}${data.deskripsi ? '<br><span style="font-size:12px; color:#0284c7; font-weight:600;">Spec: '+data.deskripsi+'</span>' : ''}</td><td style="text-align: right; font-family: monospace; color: #2563eb; font-weight: 500;">${data.koordinat}</td></tr>`;
+            });
+            let HTMLHasilRekapTitik = "";
+            for (const [key, jumlah] of Object.entries(rekapJumlahTitik)) {
+                let [namaTitik, descTitik] = key.split("|||");
+                HTMLHasilRekapTitik += `<span class="summary-item-row"><span class="nama-titik">${namaTitik} :</span> ${jumlah} <span class="sub-satuan">Titik / Node</span>${(!isRingkas && descTitik) ? `<span class="desc-text">Keterangan: ${descTitik}</span>` : ''}</span>`;
+            }
+            kontenMurniRingkasan.innerHTML = HTMLHasilRekapTitik;
+        }
+    }
+    resultBox.style.display = "block";
+}
+</script>
+
+</body>
+</html>
